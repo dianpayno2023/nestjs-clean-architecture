@@ -5,16 +5,16 @@ import { UserService } from '../services/user.service';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly svc: UserService) { }
 
   @Post()
   async create(@Body() payload: CreateUserDto): Promise<User> {
-    return this.userService.createUser(payload);
+    return this.svc.createUser(payload);
   }
 
   @Get()
-  async findAll(): Promise<User[]> {
-    return this.userService.getUsers();
+  async findByEmail(@Body() email: string): Promise<User | null> {
+    return this.svc.getUsers(email);
   }
 }
 

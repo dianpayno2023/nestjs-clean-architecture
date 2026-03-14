@@ -17,8 +17,8 @@ export class UserService {
     return this.userRepository.create(payload);
   }
 
-  async getUsers(): Promise<User[]> {
-    return this.userRepository.findAll();
+  async getUsers(email: string): Promise<User | null> {
+    return this.userRepository.findByEmail(email);
   }
 }
 

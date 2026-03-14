@@ -1,14 +1,13 @@
 export const userQueries = {
   create: `
-    INSERT INTO users (name, email)
-    VALUES ($1, $2)
-    RETURNING id, name, email, created_at
+    INSERT INTO users (email, password, full_name, role)
+    VALUES ($1, $2, $3, $4)
+    RETURNING id, email, full_name, role, created_at
   `,
-  
-  findAll: `
-    SELECT id, name, email, created_at
+  findByEmail: `
+    SELECT id, email, password, full_name, role, created_at
     FROM users
-    ORDER BY id DESC
+    WHERE email = $1
+    LIMIT 1
   `,
 };
-

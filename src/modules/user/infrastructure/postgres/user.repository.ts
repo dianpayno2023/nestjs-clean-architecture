@@ -2,31 +2,28 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { DatabaseError } from 'pg';
 import { PostgresService } from '../../../../infrastructure/database/postgres.service';
 import { CreateUserDto } from '../../dto/create-user.dto';
-import { User } from '../../interfaces/user.interface';
+import { User, UserRow } from '../../interfaces/user.interface';
 import { UserRepositoryInterface } from '../../repositories/user.repository.interface';
 import { userQueries } from './user.queries';
 
-interface UserRow {
-  id: number;
-  name: string;
-  email: string;
-  created_at: Date;
-}
+
 
 @Injectable()
 export class UserPostgresRepository implements UserRepositoryInterface {
-  constructor(private readonly postgresService: PostgresService) {}
+  constructor(private readonly pool: PostgresService) { }
 
   async create(payload: CreateUserDto): Promise<User> {
     try {
-      const result = await this.postgresService.query<UserRow>(userQueries.create, [
-        payload.name,
+      const result = await this.pool.query<UserRow>(userQueries.create, [
         payload.email,
+        payload.password,
+        payload.fullName,
+        payload.role,
       ]);
 
       return this.toDomain(result.rows[0]);
     } catch (error) {
-      if (this.isUniqueViolation(error)) {
+      if (error instanceof DatabaseError && error.code === '23505') {
         throw new ConflictException('Email already exists');
       }
 
@@ -34,22 +31,24 @@ export class UserPostgresRepository implements UserRepositoryInterface {
     }
   }
 
-  async findAll(): Promise<User[]> {
-    const result = await this.postgresService.query<UserRow>(userQueries.findAll);
+  async findByEmail(email: string): Promise<User | null> {
+    const result = await this.pool.query<UserRow>(userQueries.findByEmail, [email]);
 
-    return result.rows.map((row) => this.toDomain(row));
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    return this.toDomain(result.rows[0]);
   }
 
   private toDomain(row: UserRow): User {
     return {
       id: row.id,
-      name: row.name,
       email: row.email,
+      password: row.password,
+      fullName: row.full_name,
+      role: row.role,
       createdAt: row.created_at,
     };
-  }
-
-  private isUniqueViolation(error: unknown): boolean {
-    return error instanceof DatabaseError && error.code === '23505';
   }
 }

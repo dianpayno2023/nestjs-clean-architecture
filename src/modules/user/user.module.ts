@@ -16,6 +16,6 @@ import { UserService } from './services/user.service';
       useExisting: UserPostgresRepository,
     },
   ],
+  exports: [USER_REPOSITORY],
 })
 export class UserModule {}
-
