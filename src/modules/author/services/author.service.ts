@@ -42,8 +42,8 @@ export class AuthorService {
     }
 
 
-    // async deleteAuthor(email: string): Promise<AuthorInterface | null> {
-    //     return this.repo.findByEmail(email);
-    // }
+    async deleteAuthor(id: string): Promise<AuthorInterface | null> {
+        return this.repo.delete(id);
+    }
 }
 

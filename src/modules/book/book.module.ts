@@ -19,5 +19,5 @@ import { BOOK_REPOSITORY } from './repositories/book.repository.interface';
     ],
     exports: [BOOK_REPOSITORY],
 })
-export class AuthorModule { }
+export class BookModule { }
 

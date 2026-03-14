@@ -7,5 +7,6 @@ export interface AuthorRepositoryInterface {
     findById(id: string): Promise<AuthorInterface | null>;
     update(id: string, payload: CreateAuthorDto): Promise<AuthorInterface | null>;
     findAll(query: GetAuthorsDto): Promise<GetAuthorsResult>;
+    delete(id: string): Promise<AuthorInterface | null>;
 }
 

@@ -21,14 +21,14 @@ export class BookPostgresRepository implements BookRepositoryInterface {
                 payload.isbn,
                 payload.price,
                 payload.stock,
-                payload.publish_date ?? null,
+                payload.published_date ?? null,
 
             ]);
 
             return this.toDomain(result.rows[0]);
         } catch (error) {
             if (error instanceof DatabaseError && error.code === '23505') {
-                throw new ConflictException('Books already exists');
+                throw new ConflictException('ISBN number already exists');
             }
 
             throw error;
@@ -43,13 +43,13 @@ export class BookPostgresRepository implements BookRepositoryInterface {
                 payload.isbn,
                 payload.price,
                 payload.stock,
-                payload.publish_date ?? null,
+                payload.published_date ?? null,
                 id
             ]);
             if (!result.rows.length) {
                 return null;
             } else {
-                return this.toDomain(result.rows[0]);
+                return this.toDomain(result.rows[0], true);
             }
         } catch (error) {
             throw error;
@@ -62,7 +62,7 @@ export class BookPostgresRepository implements BookRepositoryInterface {
             if (!result.rows.length) {
                 return null;
             } else {
-                return this.toDomain(result.rows[0]);
+                return this.toDomain(result.rows[0], true);
             }
 
         } catch (error) {
@@ -71,23 +71,23 @@ export class BookPostgresRepository implements BookRepositoryInterface {
     }
 
     async delete(id: string): Promise<BookInterface | null> {
-  try {
+        try {
 
-    const result = await this.pool.query<BookInterface>(
-      booksQueries.delete,
-      [id]
-    );
+            const result = await this.pool.query<BookInterface>(
+                booksQueries.delete,
+                [id]
+            );
 
-    if (!result.rows.length) {
-      return null;
+            if (!result.rows.length) {
+                return null;
+            }
+
+            return this.toDomain(result.rows[0]);
+
+        } catch (error) {
+            throw error;
+        }
     }
-
-    return this.toDomain(result.rows[0]);
-
-  } catch (error) {
-    throw error;
-  }
-}
 
     async findAll(query: GetQueryParamBookDto): Promise<GetBooksResult> {
         const page = query.page ?? 1;
@@ -106,7 +106,7 @@ export class BookPostgresRepository implements BookRepositoryInterface {
     ${whereClause}
   `;
         const dataParams = [...params, limit, offset];
-        console.log(dataParams, 'ini data paams')
+        console.log(dataParams, 'ini data paams', dataQuery)
 
         const [dataResult, countResult] = await Promise.all([
             this.pool.query<BookInterface>(dataQuery, dataParams),
@@ -123,7 +123,7 @@ export class BookPostgresRepository implements BookRepositoryInterface {
         };
 
         return {
-            items: dataResult.rows.map(row => this.toDomain(row)),
+            items: dataResult.rows.map(row => this.toDomain(row, true)),
             meta,
         };
     }
@@ -138,6 +138,18 @@ export class BookPostgresRepository implements BookRepositoryInterface {
         if (query.search) {
             params.push(`%${query.search}%`);
             conditions.push(booksQueries.searchByTitle.replace('$1', `$${params.length}`));
+        }
+        if (query.author_id) {
+            params.push(query.author_id)
+            conditions.push(booksQueries.filterByAuthor.replace('$1', `$${params.length}`));
+        }
+        if (query.minPrice) {
+            params.push(query.minPrice)
+            conditions.push(booksQueries.filterbyMinPrice.replace('$1', `$${params.length}`));
+        }
+        if (query.maxPrice) {
+            params.push(query.maxPrice)
+            conditions.push(booksQueries.filterByMaxPrice.replace('$1', `$${params.length}`));
         }
 
         if (conditions.length === 0) {
@@ -158,23 +170,31 @@ export class BookPostgresRepository implements BookRepositoryInterface {
 
 
 
-    private toDomain(row: BookInterface): BookInterface {
+    private toDomain(
+        row: BookInterface & {
+            author_name?: string;
+            author_bio?: string;
+            author_created_at?: Date;
+        },
+        includeAuthor = false,
+    ): BookInterface {
         return {
             id: row.id,
             title: row.title,
             stock: row.stock,
-            price: row.price,
-            publish_date: row.publish_date,
+            price: Number(row.price),
+            published_date: row.published_date,
             author_id: row.author_id,
             isbn: row.isbn,
             created_at: row.created_at,
-            author: {
-                id: row.author?.id,
-                name: row.author?.name,
-                bio: row.author?.bio,
-                created_at: row.author?.created_at
-            }
-
+            ...(includeAuthor && {
+                author: {
+                    id: row.author_id,
+                    name: row.author_name ?? '',
+                    bio: row.author_bio,
+                    created_at: row.author_created_at as Date,
+                },
+            }),
         };
     }
 

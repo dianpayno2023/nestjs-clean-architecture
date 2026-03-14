@@ -7,7 +7,7 @@ export interface BookInterface {
     isbn: string
     price: number
     stock: number
-    publish_date?: Date
+    published_date?: Date
     created_at: Date
-    author: AuthorInterface
+    author?: AuthorInterface
 }

@@ -28,7 +28,7 @@ export class BookController {
     async findById(@Param('id', new ParseUUIDPipe()) id: string): Promise<ResponsePayload<BookInterface | null>> {
         const result = await this.svc.getAuthorById(id);
         return {
-            message: 'Book found successfully',
+            message: 'success',
             data: result,
             meta: null,
         }
@@ -49,17 +49,17 @@ export class BookController {
         const result = await this.svc.getAllBook(query);
 
         return {
-            message: 'Book found successfully',
+            message: 'Book List found successfully',
             data: result.items,
             meta: result.meta,
         }
     }
 
-    @Delete()
-    async delete(id: string): Promise<ResponsePayload<BookInterface | null>> {
+    @Delete(':id')
+    async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<ResponsePayload<BookInterface | null>> {
         const result = await this.svc.deleteBook(id);
         return {
-            message: 'Book updated successfully',
+            message: 'Book Deleted successfully',
             data: result,
             meta: null,
         }

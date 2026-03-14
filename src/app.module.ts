@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthorModule } from './modules/author/author.module';
+import { BookModule } from './modules/book/book.module';
 
 @Module({
   imports: [
@@ -12,7 +13,8 @@ import { AuthorModule } from './modules/author/author.module';
     }),
     UserModule,
     AuthModule,
-    AuthorModule
+    AuthorModule,
+    BookModule
   ],
 })
 export class AppModule { }

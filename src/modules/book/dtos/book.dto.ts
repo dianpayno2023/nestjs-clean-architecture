@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsDate, IsNotEmpty, IsNumber, IsString, MaxLength } from 'class-validator';
 
 export class CreateBookDto {
@@ -24,6 +25,7 @@ export class CreateBookDto {
     @IsNotEmpty()
     stock!: number;
 
+    @Type(() => Date)
     @IsDate()
-    publish_date?: Date;
+    published_date?: Date;
 }

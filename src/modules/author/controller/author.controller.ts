@@ -45,9 +45,7 @@ export class AuthorController {
 
     @Get()
     async findAll(@Query() query: GetAuthorsDto): Promise<ResponsePayload<AuthorInterface[]>> {
-
         const result = await this.svc.getAllAuthor(query);
-
         return {
             message: 'Authors found successfully',
             data: result.items,
@@ -55,8 +53,13 @@ export class AuthorController {
         }
     }
 
-    // @Delete()
-    // async delete(id: string): Promise<AuthorInterface[]> {
-    //     return this.svc.deleteAuthor(id);
-    // }
+    @Delete(':id')
+    async delete(@Param('id', new ParseUUIDPipe()) id: string): Promise<ResponsePayload<AuthorInterface| null>> {
+        const result = await this.svc.deleteAuthor(id);
+        return {
+            message: 'Authors delete successfully',
+            data: result,
+            meta: null,
+        }
+    }
 }

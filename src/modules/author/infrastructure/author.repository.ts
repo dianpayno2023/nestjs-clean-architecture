@@ -47,13 +47,34 @@ export class AuthorPostgresRepository implements AuthorRepositoryInterface {
         }
     }
 
+    async delete(id: string): Promise<AuthorInterface | null> {
+        try {
+
+            const result = await this.pool.query<AuthorInterface>(
+                authorQueries.delete,
+                [id]
+            );
+
+            if (!result.rows.length) {
+                return null;
+            }
+
+            return this.toDomain(result.rows[0]);
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
     async findById(id: string): Promise<AuthorInterface | null> {
         try {
             const result = await this.pool.query<AuthorInterface>(authorQueries.findById, [id]);
             if (!result.rows.length) {
                 return null;
             } else {
-                return this.toDomain(result.rows[0]);
+
+                // console.log(result.rows)
+                return this.toDomainById(result.rows);
             }
 
         } catch (error) {
@@ -130,6 +151,31 @@ export class AuthorPostgresRepository implements AuthorRepositoryInterface {
 
 
 
+
+
+    private toDomainById(row: any): AuthorInterface | null {
+        if (row.length === 0) return null;
+        const booklist = row.map((item: any) => {
+            return {
+                id: item.book_id,
+                title: item.book_title,
+                isbn: item.isbn,
+                price: item.price,
+                stock: item.stock,
+                published_date: item.book_published_date
+            }
+        })
+        const author = {
+            id: row[0].id,
+            name: row[0].name,
+            bio: row[0].bio,
+            created_at: row[0].created_at,
+            books: booklist
+        }
+
+        return author
+
+    }
 
 
     private toDomain(row: any): AuthorInterface {
