@@ -149,10 +149,6 @@ export class AuthorPostgresRepository implements AuthorRepositoryInterface {
     }
 
 
-
-
-
-
     private toDomainById(row: any): AuthorInterface | null {
         if (row.length === 0) return null;
         const booklist = row.map((item: any) => {
